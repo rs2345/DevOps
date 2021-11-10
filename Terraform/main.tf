@@ -32,7 +32,12 @@ resource "aws_instance" "Priv_Instance" {
     subnet_id = module.aws_vpc.PrivSub_Id
     key_name = "Dev_Terra"
     security_groups = ["${module.aws_vpc.Local_SG}"]
+}
 
-  
+output "public_IP" {
+  value = aws_instance.Pub_Instance.public_ip
+}
 
+output "private_IP" {
+  value = ["${aws_instance.Pub_Instance.private_ip}", "${aws_instance.Priv_Instance.private_ip}"]
 }
