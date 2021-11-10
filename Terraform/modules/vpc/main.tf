@@ -84,3 +84,99 @@ resource "aws_route_table_association" "Pub2_Route" {
     route_table_id = aws_route_table.Dev_RT.id
 
 }
+
+resource "aws_security_group" "PrivSub_EC2" {
+    name = "allow_local"
+    description = "Allow Local Traffic to PrivEc2"
+    vpc_id = aws_vpc.App_Dev.id
+
+    ingress = [
+        {
+            description = "Allow All Local Traffic"
+            from_port = 0
+            to_port = 0
+            protocol = "-1"
+            cidr_blocks = ["10.0.0.0/16"]
+            ipv6_cidr_blocks = ["::/0"]
+            self = false
+            prefix_list_ids = []
+            security_groups = []
+
+        }
+    ]
+
+    egress = [
+        {
+            description = "Allow All Local Traffic"
+            from_port = 0
+            to_port = 0
+            protocol = "-1"
+            cidr_blocks = ["10.0.0.0/16"]
+            ipv6_cidr_blocks = ["::/0"]
+            self = false
+            prefix_list_ids = []
+            security_groups = []
+        }
+    ]
+
+    tags = {
+        Name = "Allow Local Traffic"
+    }
+
+}
+
+resource "aws_security_group" "Terra_Web_DMZ" {
+    name = "allow_all_traffic"
+    description = "Allow all public Traffic"
+    vpc_id = aws_vpc.App_Dev.id
+
+    ingress = [
+        {
+            description = "Allow All Traffic"
+            from_port = 0
+            to_port = 0
+            protocol = "-1"
+            cidr_blocks = ["0.0.0.0/0"]
+            ipv6_cidr_blocks = ["::/0"]
+            self = false
+            prefix_list_ids = []
+            security_groups = []
+
+        }
+    ]
+
+    egress = [
+        {
+            description = "Allow All Local Traffic"
+            from_port = 0
+            to_port = 0
+            protocol = "-1"
+            cidr_blocks = ["0.0.0.0/0"]
+            ipv6_cidr_blocks = ["::/0"]
+            self = false
+            prefix_list_ids = []
+            security_groups = []
+        }
+    ]
+
+    tags = {
+        Name = "Allow Local Traffic"
+    }
+
+}
+
+output "PrivSub_Id" {
+    value = aws_subnet.PrivSub1.id
+}
+
+output "PubSub_Id" {
+    value = aws_subnet.PubSub1.id
+}
+
+output "Local_SG" {
+    value = aws_security_group.PrivSub_EC2.id
+}
+
+output "Public_SG" {
+    value = aws_security_group.Terra_Web_DMZ.id
+}
