@@ -5,10 +5,13 @@ sudo hostnamectl set-hostname k8s-control
 
 #Revise a better way to inject these values
 #sudo vi /etc/hosts
+function append_host {
 
-ADMIN_IP k8s-control
-NODE_ONE k8s-worker1
-NODE_TWO k8s-worker2
+	sudo -- sh -c "echo ADMIN_IP k8s-control >> /etc/hosts"
+	sudo -- sh -c "echo NODE_ONE k8s-worker1 >> /etc/hosts"
+	sudo -- sh -c "echo NODE_TWO k8s-worker2 >> /etc/hosts"
+	
+}
 
 function cont_d_conf {
 	cat << EOF | sudo tee /etc/modules-load.d/containerd.conf
@@ -88,6 +91,7 @@ echo "kubeadm token create --print-join-command"
 echo "sudo kubeadm join ..."
 echo "kubectl get nodes"
 
+append_host
 cont_d_conf
 cont_d_inst
 dis_swap
