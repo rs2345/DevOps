@@ -6,7 +6,7 @@ sudo hostnamectl set-hostname k8s-control
 #Revise a better way to inject these values
 #sudo vi /etc/hosts
 
-ADMIN_IP k8s-control
+3.231.33.58 k8s-control
 NODE_ONE k8s-worker1
 NODE_TWO k8s-worker2
 
