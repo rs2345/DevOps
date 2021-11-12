@@ -1,10 +1,7 @@
 #!/bin/bash
 
-sudo hostnamectl set-hostname k8s-control
+sudo hostnamectl set-hostname k8s-worker1
 
-
-#Revise a better way to inject these values
-#sudo vi /etc/hosts
 function append_host {
 
 	sudo -- sh -c "echo ADMIN_IP k8s-control >> /etc/hosts"
@@ -64,43 +61,8 @@ EOF
 	sudo apt-mark hold kubelet kubeadm kubectl
 }
 
-#Control Node Only#
-
-function kube_acc {
-	sudo kubeadm init --pod-network-cidr 192.168.0.0/16 --kubernetes-version 1.21.0
-
-	mkdir -p $HOME/.kube
-
-	sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-
-	sudo chown $(id -u):$(id -g) $HOME/.kube/config
-}
-
-function confirm {
-	kubectl get nodes
-	echo "THIS IS A TEST!!  IF THIS DOES NOT WORK, REVISE"
-}
-
-function cali_install {
-	kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-}
-
-echo "You need to work in the following commands and try to get their outputs to a text file and sed the join command"
-
-echo "kubeadm token create --print-join-command"
-echo "sudo kubeadm join ..."
-echo "kubectl get nodes"
-
 append_host
 cont_d_conf
 cont_d_inst
 dis_swap
 kube_setup
-kube_acc
-confirm
-cali_install
-
-##To be added##
-
-
-#sudo token create --print-join-command 

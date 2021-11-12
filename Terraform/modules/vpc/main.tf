@@ -165,12 +165,12 @@ resource "aws_security_group" "Terra_Web_DMZ" {
 
 }
 
-output "PrivSub_Id" {
-    value = aws_subnet.PrivSub1.id
+output "PubSub1_ID" {
+    value = aws_subnet.PubSub1.id
 }
 
-output "PubSub_Id" {
-    value = aws_subnet.PubSub1.id
+output "PubSub2_ID" {
+    value = aws_subnet.PubSub2.id
 }
 
 output "Local_SG" {
