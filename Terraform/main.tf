@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       version = ">= 2.7.0"
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
     }
   }
 }
@@ -14,57 +14,49 @@ provider "aws" {
 
 module "aws_vpc" {
   source = "./modules/vpc"
-  
+
 }
 
 resource "aws_instance" "Pub_Instance" {
-    ami = "ami-01cc34ab2709337aa"
-    instance_type = "t2.micro"
-    key_name = "Dev_Terra"
-    subnet_id = module.aws_vpc.PubSub_Id
-    security_groups = ["${module.aws_vpc.Public_SG}"]
+  ami             = "ami-0b0ea68c435eb488d"
+  instance_type   = "t2.medium"
+  key_name        = "Dev_Terra"
+  subnet_id       = module.aws_vpc.PubSub_Id
+  security_groups = ["${module.aws_vpc.Public_SG}"]
 
-    provisioner "local-exec" {
-      command = "sed -i -e 's/ADMIN_IP/${aws_instance.Pub_Instance.public_ip}/g' ./scripts/admin_Pod.sh"
-    }
+  connection {
+    host        = aws_instance.Pub_Instance.public_ip
+    type        = "ssh"
+    port        = "22"
+    user        = "ubuntu"
+    private_key = file("./scripts/Dev_Terra.pem")
+  }
+  
+  provisioner "local-exec" {
+    command = "sed -i -e 's/ADMIN_IP/${aws_instance.Pub_Instance.public_ip}/g' ./scripts/admin_Pod.sh"
+  }
 
-    provisioner "file" {
+  provisioner "file" {
 
-      connection {
-        host = "${aws_instance.Pub_Instance.public_ip}"
-        type = "ssh"
-        port = "22"
-        user = "ec2-user"
-        private_key = file("./scripts/Dev_Terra.pem")
-      }
+    source      = "scripts/admin_Pod.sh"
+    destination = "/home/ubuntu/admin_Pod.sh"
+  }
 
-        source = "./scripts/admin_Pod.sh"
-        destination = "./home/ec2-user"      
-    }
+  provisioner "remote-exec" {
 
-    provisioner "remote-exec" {
-     
-      connection {  
-        host = "${aws_instance.Pub_Instance.public_ip}"
-        type = "ssh"
-        port = "22"
-        user = "ec2-user"
-        private_key = file("./scripts/Dev_Terra.pem")
-
-        inline = [
-          "chmod 777 admin_Pod.sh", "./home/ec2-user/admin_Pod.sh"
-      ]
-     }
-
-}
+    inline = [
+      "sudo chmod 777 admin_Pod.sh",
+      "./admin_Pod.sh",
+    ]
+  }
 }
 
 resource "aws_instance" "Priv_Instance" {
-    ami = "ami-01cc34ab2709337aa"
-    instance_type = "t2.micro"
-    subnet_id = module.aws_vpc.PrivSub_Id
-    key_name = "Dev_Terra"
-    security_groups = ["${module.aws_vpc.Local_SG}"]
+  ami             = "ami-01cc34ab2709337aa"
+  instance_type   = "t2.micro"
+  subnet_id       = module.aws_vpc.PrivSub_Id
+  key_name        = "Dev_Terra"
+  security_groups = ["${module.aws_vpc.Local_SG}"]
 }
 
 output "public_IP" {
