@@ -44,26 +44,34 @@ resource "aws_instance" "Node_Two" {
 }
 
 resource "null_resource" "Configure_Provisioners" {
-  
+
   provisioner "local-exec" {
     command = <<-EOT
-    sed -i -e 's/ADMIN_IP/${aws_instance.Master_Node.public_ip}/g' ./scripts/admin_Pod.sh
-    sed -i -e 's/NODE_ONE/${aws_instance.Node_One.public_ip}/g' ./scripts/admin_Pod.sh
-    sed -i -e 's/NODE_TWO/${aws_instance.Node_Two.public_ip}/g' ./scripts/admin_Pod.sh
+   
+    cp scripts/Node_Templates/Admin_Node.sh scripts/Admin_Node.sh
+    cp scripts/Node_Templates/Node_One.sh scripts/Node_One.sh
+    cp scripts/Node_Templates/Node_Two.sh scripts/Node_Two.sh
+    sed -i -e 's/ADMIN_IP/${aws_instance.Master_Node.public_ip}/g' ./scripts/Admin_Node.sh
+    sed -i -e 's/NODE_ONE/${aws_instance.Node_One.public_ip}/g' ./scripts/Admin_Node.sh
+    sed -i -e 's/NODE_TWO/${aws_instance.Node_Two.public_ip}/g' ./scripts/Admin_Node.sh
     sed -i -e 's/ADMIN_IP/${aws_instance.Master_Node.public_ip}/g' ./scripts/Node_One.sh
     sed -i -e 's/NODE_ONE/${aws_instance.Node_One.public_ip}/g' ./scripts/Node_One.sh
-    sed -i -e 's/NODE_TWO/${aws_instance.Node_Two.public_ip}/g' ./scripts/Node_Two.sh
+    sed -i -e 's/NODE_TWO/${aws_instance.Node_Two.public_ip}/g' ./scripts/Node_One.sh
     sed -i -e 's/ADMIN_IP/${aws_instance.Master_Node.public_ip}/g' ./scripts/Node_Two.sh
     sed -i -e 's/NODE_ONE/${aws_instance.Node_One.public_ip}/g' ./scripts/Node_Two.sh
     sed -i -e 's/NODE_TWO/${aws_instance.Node_Two.public_ip}/g' ./scripts/Node_Two.sh
   EOT
 
   }
+
+  triggers = {
+    order = aws_instance.Master_Node.public_ip
+  }
 }
 
 resource "null_resource" "Master_Provisioner" {
 
-connection {
+  connection {
     host        = aws_instance.Master_Node.public_ip
     type        = "ssh"
     port        = "22"
@@ -72,15 +80,21 @@ connection {
   }
   provisioner "file" {
 
-    source      = "scripts/admin_Pod.sh"
-    destination = "/home/ubuntu/admin_Pod.sh"
+    source      = "scripts/Admin_Node.sh"
+    destination = "/home/ubuntu/Admin_Node.sh"
+  }
+
+  provisioner "file" {
+
+    source      = "scripts/Dev_Terra.pem"
+    destination = "/home/ubuntu/Dev_Terra.pem"
   }
 
   provisioner "remote-exec" {
 
     inline = [
-      "sudo chmod 777 admin_Pod.sh",
-      "./admin_Pod.sh",
+      "sudo chmod 777 Admin_Node.sh",
+      "./Admin_Node.sh",
     ]
   }
   triggers = {
@@ -90,7 +104,7 @@ connection {
 
 resource "null_resource" "Node_One_Provisioner" {
 
-connection {
+  connection {
     host        = aws_instance.Node_One.public_ip
     type        = "ssh"
     port        = "22"
@@ -113,7 +127,7 @@ connection {
   triggers = {
     order = null_resource.Configure_Provisioners.id
   }
-  
+
 }
 
 resource "null_resource" "Node_Two_Provisioner" {
@@ -150,6 +164,6 @@ output "public_IP" {
 output "private_IP_One" {
   value = ["${aws_instance.Node_One.private_ip}"]
 }
- output "private_IP_Two" {
-   value = ["${aws_instance.Node_Two.private_ip}"]
- }
+output "private_IP_Two" {
+  value = ["${aws_instance.Node_Two.private_ip}"]
+}
