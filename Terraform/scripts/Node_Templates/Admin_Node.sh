@@ -101,7 +101,7 @@ function install_git {
 
 function clone_repo {
     git clone https://github.com/rs2345/DevOps.git
-    sh /DevOps/Jenkins/Jenkins.sh
+    sudo sh DevOps/Jenkins/Jenkins.sh
 }
 
 append_host
