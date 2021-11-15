@@ -2,9 +2,7 @@
 
 sudo hostnamectl set-hostname k8s-control
 
-
-#Revise a better way to inject these values
-#sudo vi /etc/hosts
+#Used to append the 'hosts' file on each machine with IP/Hostnames.  Used to K8s 
 function append_host {
 
 	sudo -- sh -c "echo ADMIN_IP k8s-control >> /etc/hosts"
@@ -12,7 +10,7 @@ function append_host {
 	sudo -- sh -c "echo NODE_TWO k8s-worker2 >> /etc/hosts"
 	
 }
-
+#Initial Containerd configuration
 function cont_d_conf {
 	cat << EOF | sudo tee /etc/modules-load.d/containerd.conf
 	overlay
@@ -31,7 +29,7 @@ EOF
 
 	sudo sysctl --system
 }
-
+#Retrieve and install Containerd
 function cont_d_inst {
 	sudo apt-get update && sudo apt-get install -y containerd
 
@@ -41,13 +39,13 @@ function cont_d_inst {
 
 	sudo systemctl restart containerd
 }
-
+#Disable Swap
 function dis_swap {
 	sudo swapoff -a
 
 	sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 }
-
+#Retrieve and install Kubernetes
 function kube_setup {
 	sudo apt-get update && sudo apt-get install -y apt-transport-https curl
 
@@ -65,7 +63,7 @@ EOF
 }
 
 #Control Node Only#
-
+#Configure K8s on the controller node
 function kube_acc {
 	sudo kubeadm init --pod-network-cidr 192.168.0.0/16 --kubernetes-version 1.21.0
 
@@ -75,16 +73,17 @@ function kube_acc {
 
 	sudo chown $(id -u):$(id -g) $HOME/.kube/config
 }
-
+#Simple Confirmation
 function confirm {
 	kubectl get nodes
 	echo "THIS IS A TEST!!  IF THIS DOES NOT WORK, REVISE"
 }
-
+#Configure Calico networking
 function cali_install {
 	kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 }
-
+#For automation purposes:  Adds node IP's to trusted SSH Keychain to bypass EDSA fingerprint confirmation
+#Fetches the join command from K8s controller and remote executes the command on the worker nodes
 function kube_node_join {
 	ssh-keyscan -H NODE_ONE >> ~/.ssh/known_hosts
 	ssh-keyscan -H NODE_TWO >> ~/.ssh/known_hosts
@@ -94,12 +93,16 @@ function kube_node_join {
 	ssh -i Dev_Terra.pem ubuntu@NODE_TWO "sudo $JOIN --ignore-preflight-errors=all"
 
 }
+#Needed to start adding in post setup scripts here to avoid adding in more files for Terraform to configure.
 
-echo "You need to work in the following commands and try to get their outputs to a text file and sed the join command"
+function install_git {
+    sudo apt install git-all -y
+}
 
-echo "kubeadm token create --print-join-command"
-echo "sudo kubeadm join ..."
-echo "kubectl get nodes"
+function clone_repo {
+    git clone https://github.com/rs2345/DevOps.git
+    cd DevOps/Jenkins/
+}
 
 append_host
 cont_d_conf
@@ -111,6 +114,7 @@ confirm
 cali_install
 sleep 50s
 kube_node_join
+install_git
+clone_repo
 
-##To be added##
-
+#Remember that this script ends in the DevOps Jenkins REPO#
