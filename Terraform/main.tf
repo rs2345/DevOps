@@ -157,6 +157,19 @@ resource "null_resource" "Node_Two_Provisioner" {
   }
 }
 
+# data "aws_route53_zone" "selected" {
+#   name         = "rickyspringer.com"
+#   private_zone = false
+# }
+
+resource "aws_route53_record" "www" {
+  zone_id = "Z0084761L6YMKCYG41CL"
+  name    = "www.jenkins.rickyspringer.com"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_instance.Node_One.public_ip]
+}
+
 output "public_IP" {
   value = aws_instance.Master_Node.public_ip
 }
