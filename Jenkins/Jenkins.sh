@@ -6,7 +6,7 @@
 
 
 function deploy_jenkins {
-    
+cd DevOps/Jenkins/    
 kubectl create ns devops-tools
 kubectl apply -f serviceAccount.yaml --validate=false
 kubectl create -f volume.yaml
