@@ -94,7 +94,7 @@ resource "null_resource" "Master_Provisioner" {
 
     inline = [
       "sudo chmod 777 Admin_Node.sh",
-      "./Admin_Node.sh",
+      "sudo ./Admin_Node.sh",
     ]
   }
   triggers = {
