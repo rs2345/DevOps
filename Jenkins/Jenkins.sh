@@ -12,6 +12,7 @@ kubectl apply -f serviceAccount.yaml --validate=false
 kubectl create -f volume.yaml
 kubectl apply -f deployment.yaml --validate=false
 kubectl apply -f service.yaml --validate=false
+
 }
 
 deploy_jenkins
